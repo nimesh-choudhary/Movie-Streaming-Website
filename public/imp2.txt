@@ -1,0 +1,49 @@
+const express = require("express");
+const bodyPraser = require("body-parser");
+const app = express();
+require("./views/conn.js");
+const path = require('path');
+const Register = require('./views/regdet');
+const movi = path.join(__dirname,"../views");
+const cons = require('consolidate');
+
+app.use(bodyPraser.json());
+app.use(bodyPraser.urlencoded({
+    extended: true
+}))
+app.use(express.static('views'));
+app.use(express.static('style.css'));
+app.use('/Images',express.static('Images'));
+app.set("views", movi);
+app.engine('html',cons.swig);
+app.set('view engine','html');
+
+app.get("/",(req,res)=>{
+    res.render("index");
+})
+app.get("/reg", (req,res)=>{
+    res.render("reg.html");
+})
+
+app.use(express.urlencoded({extended:false}));
+
+app.post("/reg", async (req,res)=>{
+    try{
+        const userRecord = new Register({
+            name : req.body.name,
+            email : req.body.email,
+            password : req.body.password,
+            phone : req.body.phone
+        })
+        const userStatus = await userRecord.save();
+        res.render("index");
+    }
+    catch(e){
+        res.status(400);
+        res.send(e);
+    }
+})
+
+app.listen(3000, ()=>{
+    console.log('Running on port');
+})
